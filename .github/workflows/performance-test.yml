@@ -11,7 +11,7 @@ env:
   AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-  AZURE_ENV_NAME: blobtest
+  AZURE_ENV_NAME: azure-blob-testing
 
 permissions:
   id-token: write
@@ -44,8 +44,7 @@ jobs:
           azd auth login --client-id "${{ env.AZURE_CLIENT_ID }}" --federated-credential-provider "github" --tenant-id "${{ env.AZURE_TENANT_ID }}"
           azd env set AZURE_LOCATION "eastus"
           azd env set AZURE_SUBSCRIPTION_ID "${{ env.AZURE_SUBSCRIPTION_ID }}"
-          azd env new ${{ env.AZURE_ENV_NAME }}
-          azd init --environment ${{ env.AZURE_ENV_NAME }} --up --no-prompt
+          azd provision --no-prompt
           
           # Get outputs and set them as job outputs
           echo "AZURE_STORAGE_ACCOUNT_NAME=$(azd env get-values | grep AZURE_STORAGE_ACCOUNT_NAME | cut -d'=' -f2 | tr -d '"')" >> $GITHUB_OUTPUT
