@@ -45,7 +45,7 @@ jobs:
           azd env set AZURE_LOCATION "eastus"
           azd env set AZURE_SUBSCRIPTION_ID "${{ env.AZURE_SUBSCRIPTION_ID }}"
           azd env new ${{ env.AZURE_ENV_NAME }}
-          azd up --no-prompt
+          azd init --environment ${{ env.AZURE_ENV_NAME }} --up --no-prompt
           
           # Get outputs and set them as job outputs
           echo "AZURE_STORAGE_ACCOUNT_NAME=$(azd env get-values | grep AZURE_STORAGE_ACCOUNT_NAME | cut -d'=' -f2 | tr -d '"')" >> $GITHUB_OUTPUT
