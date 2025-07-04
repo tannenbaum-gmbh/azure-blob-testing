@@ -157,4 +157,9 @@ Thumbs.db
 # Test artifacts
 test-results/
 performance-results/
+
+# Bicep compiled templates
 *.json
+!.devcontainer/*.json
+!infra/*.json
+!infra/**/*.json
