@@ -69,23 +69,14 @@ jobs:
           tenant-id: ${{ env.AZURE_TENANT_ID }}
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build Performance Test Container
-        run: |
-          docker build -t blob-performance-test .
-
       - name: Run Performance Test
         env:
           AZURE_STORAGE_ACCOUNT_NAME: ${{ needs.infrastructure.outputs.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_ENDPOINT: ${{ needs.infrastructure.outputs.AZURE_STORAGE_ACCOUNT_ENDPOINT }}
         run: |
           echo "Running performance test instance ${{ matrix.test-instance }}"
-          docker run --rm \
-            -e AZURE_CLIENT_ID="${{ env.AZURE_CLIENT_ID }}" \
-            -e AZURE_TENANT_ID="${{ env.AZURE_TENANT_ID }}" \
-            -e AZURE_SUBSCRIPTION_ID="${{ env.AZURE_SUBSCRIPTION_ID }}" \
-            -e AZURE_STORAGE_ACCOUNT_NAME="${{ env.AZURE_STORAGE_ACCOUNT_NAME }}" \
-            -e AZURE_STORAGE_ACCOUNT_ENDPOINT="${{ env.AZURE_STORAGE_ACCOUNT_ENDPOINT }}" \
-            blob-performance-test
+          pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
+          python src/performance_test.py
 
       - name: Upload Test Results
         if: always()
