@@ -9,7 +9,7 @@
       "value": "${AZURE_LOCATION=eastus}"
     },
     "principalId": {
-      "value": "${AZURE_CLIENT_ID=}"
+      "value": "${AZURE_PRINCIPAL_ID=}"
     }
   }
 }
