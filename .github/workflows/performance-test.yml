@@ -1,0 +1,115 @@
+name: Azure Blob Performance Testing
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_PRINCIPAL_ID: ${{ vars.AZURE_PRINCIPAL_ID }}
+  AZURE_ENV_NAME: azure-blob-testing
+  AZURE_LOCATION: centralus
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  infrastructure:
+    runs-on: ubuntu-latest
+    outputs:
+      AZURE_STORAGE_ACCOUNT_NAME: ${{ steps.deploy.outputs.AZURE_STORAGE_ACCOUNT_NAME }}
+      AZURE_STORAGE_ACCOUNT_ENDPOINT: ${{ steps.deploy.outputs.AZURE_STORAGE_ACCOUNT_ENDPOINT }}
+      AZURE_RESOURCE_GROUP: ${{ steps.deploy.outputs.AZURE_RESOURCE_GROUP }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Infrastructure
+        id: deploy
+        run: |
+          azd auth login --client-id "${{ env.AZURE_CLIENT_ID }}" --federated-credential-provider "github" --tenant-id "${{ env.AZURE_TENANT_ID }}"
+          azd env new ${{ env.AZURE_ENV_NAME }} --subscription ${{ env.AZURE_SUBSCRIPTION_ID }} --location ${{ env.AZURE_LOCATION }}
+          azd provision --no-prompt
+          
+          # Get outputs and set them as job outputs
+          echo "AZURE_STORAGE_ACCOUNT_NAME=$(azd env get-values | grep AZURE_STORAGE_ACCOUNT_NAME | cut -d'=' -f2 | tr -d '"')" >> $GITHUB_OUTPUT
+          echo "AZURE_STORAGE_ACCOUNT_ENDPOINT=$(azd env get-values | grep AZURE_STORAGE_ACCOUNT_ENDPOINT | cut -d'=' -f2 | tr -d '"')" >> $GITHUB_OUTPUT
+          echo "AZURE_RESOURCE_GROUP=$(azd env get-values | grep AZURE_RESOURCE_GROUP | cut -d'=' -f2 | tr -d '"')" >> $GITHUB_OUTPUT
+
+  performance-test:
+    needs: infrastructure
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-instance: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Run Performance Test
+        env:
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ needs.infrastructure.outputs.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_ENDPOINT: ${{ needs.infrastructure.outputs.AZURE_STORAGE_ACCOUNT_ENDPOINT }}
+        run: |
+          echo "Running performance test instance ${{ matrix.test-instance }}"
+          pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
+          python src/performance_test.py
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results-${{ matrix.test-instance }}
+          path: |
+            *.json
+            *.log
+          retention-days: 30
+
+  cleanup:
+    needs: [infrastructure, performance-test]
+    runs-on: ubuntu-latest
+    if: always()
+    env:
+        AZURE_RESOURCE_GROUP: ${{ needs.infrastructure.outputs.AZURE_RESOURCE_GROUP }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Cleanup Infrastructure
+        run: |
+          azd auth login --client-id "${{ env.AZURE_CLIENT_ID }}" --federated-credential-provider "github" --tenant-id "${{ env.AZURE_TENANT_ID }}"
+          azd env new ${{ env.AZURE_ENV_NAME }} --subscription ${{ env.AZURE_SUBSCRIPTION_ID }} --location ${{ env.AZURE_LOCATION }}
+          azd down --force --no-prompt
