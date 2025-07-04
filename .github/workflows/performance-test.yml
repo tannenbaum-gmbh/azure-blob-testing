@@ -112,4 +112,4 @@ jobs:
         run: |
           azd auth login --client-id "${{ env.AZURE_CLIENT_ID }}" --federated-credential-provider "github" --tenant-id "${{ env.AZURE_TENANT_ID }}"
           azd env new ${{ env.AZURE_ENV_NAME }} --subscription ${{ env.AZURE_SUBSCRIPTION_ID }} --location ${{ env.AZURE_LOCATION }}
-          azd down --no-prompt
+          azd down --force --no-prompt
