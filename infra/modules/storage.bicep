@@ -60,7 +60,7 @@ resource storageRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-
   properties: {
     roleDefinitionId: storageRoleDefinitionId
     principalId: principalId
-    principalType: 'User'
+    principalType: 'ServicePrincipal'
   }
 }
 
