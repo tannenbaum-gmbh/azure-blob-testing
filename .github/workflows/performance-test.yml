@@ -44,6 +44,7 @@ jobs:
           azd auth login --client-id "${{ env.AZURE_CLIENT_ID }}" --federated-credential-provider "github" --tenant-id "${{ env.AZURE_TENANT_ID }}"
           azd env set AZURE_LOCATION "eastus"
           azd env set AZURE_SUBSCRIPTION_ID "${{ env.AZURE_SUBSCRIPTION_ID }}"
+          azd env new ${{ env.AZURE_ENV_NAME }}
           azd up --no-prompt
           
           # Get outputs and set them as job outputs
@@ -100,6 +101,8 @@ jobs:
     needs: [infrastructure, performance-test]
     runs-on: ubuntu-latest
     if: always()
+    env:
+        AZURE_RESOURCE_GROUP: ${{ needs.infrastructure.outputs.AZURE_RESOURCE_GROUP }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,5 +119,4 @@ jobs:
 
       - name: Cleanup Infrastructure
         run: |
-          azd auth login --client-id "${{ env.AZURE_CLIENT_ID }}" --federated-credential-provider "github" --tenant-id "${{ env.AZURE_TENANT_ID }}"
-          azd down --force --purge --no-prompt || echo "Cleanup completed with warnings"
+          az group delete --name ${{ env.AZURE_RESOURCE_GROUP }} --yes --no-wait
