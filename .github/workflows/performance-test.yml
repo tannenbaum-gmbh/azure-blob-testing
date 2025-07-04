@@ -13,7 +13,7 @@ env:
   AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   AZURE_PRINCIPAL_ID: ${{ vars.AZURE_PRINCIPAL_ID }}
   AZURE_ENV_NAME: azure-blob-testing
-  AZURE_LOCATION: swedencentral
+  AZURE_LOCATION: centralus
 
 permissions:
   id-token: write
