@@ -16,11 +16,11 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   location: location
   tags: tags
   sku: {
-    name: 'Premium_LRS'
+    name: 'PremiumV2_LRS'
   }
   kind: 'StorageV2'
   properties: {
-    accessTier: 'Premium'
+    // accessTier: 'Premium'
     allowBlobPublicAccess: true
     allowCrossTenantReplication: false
     allowSharedKeyAccess: true
