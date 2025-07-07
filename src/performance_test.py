@@ -74,6 +74,7 @@ class PerformanceMetrics:
             'download_time_ms': 0,
             'total_time_ms': 0,
             'upload_to_download_time_ms': 0,
+            'wait_before_download_ms': 0,
             'log_file': None
         }
 
@@ -312,6 +313,7 @@ def main():
             blob_service_client, container_name, blob_name, image_data
         )
         metrics.metrics['upload_time_ms'] = round(upload_time_ms, 2)
+        upload_end_time = time.time()
 
         # Step 3: Generate SAS URL
         logger.info("Step 3: Generating SAS URL...")
@@ -320,6 +322,17 @@ def main():
         )
         metrics.metrics['sas_generation_time_ms'] = round(
             sas_generation_time_ms, 2
+        )
+        sas_ready_time = time.time()
+
+        # Measure wait time before download
+        wait_before_download_ms = (sas_ready_time - upload_end_time) * 1000
+        metrics.metrics['wait_before_download_ms'] = round(
+            wait_before_download_ms, 2
+        )
+        logger.info(
+            f"Wait time before download: "
+            f"{metrics.metrics['wait_before_download_ms']} ms"
         )
 
         # Step 4: Download via SAS URL
@@ -369,6 +382,10 @@ def main():
         logger.info(
             f"Upload to Download Time: "
             f"{metrics.metrics['upload_to_download_time_ms']} ms"
+        )
+        logger.info(
+            f"Wait Before Download: "
+            f"{metrics.metrics['wait_before_download_ms']} ms"
         )
         logger.info("=" * 50)
 
