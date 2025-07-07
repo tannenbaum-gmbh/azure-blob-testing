@@ -20,7 +20,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
   kind: 'StorageV2'
   properties: {
-    accessTier: 'Hot'
+    accessTier: 'Premium'
     allowBlobPublicAccess: true
     allowCrossTenantReplication: false
     allowSharedKeyAccess: true
