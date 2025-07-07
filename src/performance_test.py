@@ -27,11 +27,38 @@ from azure.identity import DefaultAzureCredential
 
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+def setup_logging():
+    """Setup logging to both console and file"""
+    # Create logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+    # Create console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    # Create file handler with timestamp
+    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+    log_filename = f"performance_test_{timestamp}.log"
+    file_handler = logging.FileHandler(log_filename)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+
+    # Add handlers to logger
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+
+    # Log the log file location
+    logger.info(f"Logging to file: {log_filename}")
+
+    return logger, log_filename
+
+
+logger, log_filename = setup_logging()
 
 
 class PerformanceMetrics:
@@ -46,7 +73,8 @@ class PerformanceMetrics:
             'sas_generation_time_ms': 0,
             'download_time_ms': 0,
             'total_time_ms': 0,
-            'upload_to_download_time_ms': 0
+            'upload_to_download_time_ms': 0,
+            'log_file': None
         }
 
     def to_json(self):
@@ -256,6 +284,7 @@ def main():
 
     # Initialize metrics
     metrics = PerformanceMetrics()
+    metrics.metrics['log_file'] = log_filename
 
     try:
         # Initialize blob service client
@@ -328,6 +357,7 @@ def main():
         logger.info("Performance Test Results:")
         logger.info("=" * 50)
         logger.info(f"Test ID: {metrics.metrics['test_id']}")
+        logger.info(f"Log File: {metrics.metrics['log_file']}")
         logger.info(f"File Size: {metrics.metrics['file_size_mb']} MB")
         logger.info(f"Upload Time: {metrics.metrics['upload_time_ms']} ms")
         logger.info(
@@ -344,6 +374,14 @@ def main():
 
         # Output JSON for programmatic consumption
         print(f"PERFORMANCE_METRICS_JSON:{metrics.to_json()}")
+
+        # Save metrics to file
+        metrics_filename = (
+            f"performance_metrics_{metrics.metrics['test_id']}.json"
+        )
+        with open(metrics_filename, 'w') as f:
+            f.write(metrics.to_json())
+        logger.info(f"Metrics saved to file: {metrics_filename}")
 
         # Clean up
         logger.info("Cleaning up test blob...")
