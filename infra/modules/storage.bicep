@@ -18,7 +18,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   sku: {
     name: 'Premium_LRS'
   }
-  kind: 'StorageV2'
+  kind: 'BlockBlobStorage'
   properties: {
     // accessTier: 'Hot'
     allowBlobPublicAccess: true
