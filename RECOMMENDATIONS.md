@@ -432,6 +432,9 @@ def validate_results(results_dir):
     print("✅ All performance baselines met")
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: python validate_baselines.py <results_directory>")
+        sys.exit(1)
     validate_results(sys.argv[1])
 ```
 

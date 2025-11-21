@@ -30,7 +30,7 @@ This document tracks all issues found during the comprehensive QA review of the 
 **Category:** Security Vulnerability  
 **Location:** `src/performance_test.py:238`  
 **Bandit Code:** B310  
-**CWE:** CWE-22 (Path Traversal)
+**CWE:** CWE-918 (Server-Side Request Forgery)
 
 **Description:**
 The code uses `urllib.request.urlopen(sas_url)` without validating the URL scheme, which could allow file:// or custom schemes to be used, potentially leading to SSRF (Server-Side Request Forgery) or local file access vulnerabilities.
@@ -301,7 +301,10 @@ except Exception as e:
 
 **Recommendation:**
 ```python
-except (AttributeError, KeyError, azure.core.exceptions.AzureError) as e:
+from azure.core.exceptions import AzureError
+
+# In the exception handler:
+except (AttributeError, KeyError, AzureError) as e:
     logger.warning(f"SAS generation failed: {e}. Using blob URL directly.")
 ```
 
