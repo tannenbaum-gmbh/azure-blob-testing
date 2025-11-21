@@ -77,7 +77,7 @@
 3. Add file encoding (ISSUE-003)
 4. Review security settings (ISSUE-005, 006)
 
-**Timeline:** 2-3 days
+**Timeline:** 2-3 days (estimated development time; may vary based on team availability and organizational processes)
 
 ### ❌ Production Environment
 **Status:** NOT APPROVED  
@@ -89,7 +89,7 @@
 5. Performance baselines established
 6. Monitoring configured
 
-**Timeline:** 2-3 weeks
+**Timeline:** 2-3 weeks (estimated; actual timeline depends on team capacity, testing requirements, and approval processes)
 
 ---
 

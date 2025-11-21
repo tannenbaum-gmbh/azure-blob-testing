@@ -30,6 +30,7 @@ These items MUST be addressed before any production deployment:
 
 **Implementation:**
 ```python
+# Add at top of file with other imports
 from urllib.parse import urlparse
 
 def download_blob_via_sas(sas_url, blob_service_client=None,
@@ -59,8 +60,16 @@ def download_blob_via_sas(sas_url, blob_service_client=None,
             "Only http and https are allowed."
         )
     
-    # Rest of implementation...
+    # Continue with existing implementation...
+    try:
+        import urllib.request
+        with urllib.request.urlopen(sas_url) as response:
+            data = response.read()
+    except Exception as e:
+        # Existing fallback logic...
 ```
+
+**Note:** Code examples are abbreviated for clarity. See ISSUES_FOUND.md for complete implementations.
 
 ---
 

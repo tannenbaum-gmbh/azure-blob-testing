@@ -49,7 +49,9 @@ with urllib.request.urlopen(sas_url) as response:
 
 **Recommendation:**
 ```python
+# Add to top of file with other imports:
 from urllib.parse import urlparse
+import urllib.request
 
 def download_blob_via_sas(sas_url, blob_service_client=None,
                           container_name=None, blob_name=None):
@@ -61,13 +63,13 @@ def download_blob_via_sas(sas_url, blob_service_client=None,
     """
     start_time = time.time()
     
-    # Validate URL scheme
+    # Validate URL scheme to prevent SSRF
     parsed_url = urlparse(sas_url)
     if parsed_url.scheme not in ['http', 'https']:
         raise ValueError(f"Invalid URL scheme: {parsed_url.scheme}. Only http and https are allowed.")
     
     try:
-        import urllib.request
+        # urllib.request now imported at top of file
         with urllib.request.urlopen(sas_url) as response:
             data = response.read()
     except Exception as e:
